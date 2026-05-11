@@ -1,0 +1,33 @@
+name: Daily Petrol Price Alert
+
+on:
+  schedule:
+    # Runs at 7:30 AM NZT daily (= 19:30 UTC previous day, accounting for NZST UTC+12 / NZDT UTC+13)
+    # Adjust: NZST is UTC+12, so 7:30 AM NZST = 19:30 UTC
+    - cron: '30 19 * * *'
+  workflow_dispatch:  # Allow manual trigger from GitHub UI
+
+jobs:
+  check-prices:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install node-fetch nodemailer
+
+      - name: Fetch prices and send alert
+        env:
+          GMAIL_USER: ${{ secrets.GMAIL_USER }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+          ALERT_EMAIL: ${{ secrets.ALERT_EMAIL }}
+          PRICE_THRESHOLD: ${{ secrets.PRICE_THRESHOLD }}   # in cents e.g. 220
+        run: node scripts/check-prices.js

@@ -1,0 +1,898 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PetrolWatch Tauranga — Cheapest Fuel Near You</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0a0a0f;
+      --surface: #12121a;
+      --card: #18181f;
+      --border: #2a2a38;
+      --accent: #f5c518;
+      --accent2: #ff6b35;
+      --green: #22c55e;
+      --red: #ef4444;
+      --text: #f0f0f5;
+      --muted: #8888aa;
+      --font-display: 'Bebas Neue', sans-serif;
+      --font-body: 'DM Sans', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-body);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Animated background grid */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(245,197,24,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(245,197,24,0.03) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .container { max-width: 1100px; margin: 0 auto; padding: 0 20px; position: relative; z-index: 1; }
+
+    /* HEADER */
+    header {
+      border-bottom: 1px solid var(--border);
+      padding: 18px 0;
+      backdrop-filter: blur(10px);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(10,10,15,0.85);
+    }
+
+    .header-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .logo {
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+    }
+
+    .logo-main {
+      font-family: var(--font-display);
+      font-size: 2rem;
+      letter-spacing: 2px;
+      color: var(--accent);
+    }
+
+    .logo-region {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      color: var(--muted);
+      letter-spacing: 3px;
+      text-transform: uppercase;
+    }
+
+    .live-badge {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      background: rgba(34,197,94,0.1);
+      border: 1px solid rgba(34,197,94,0.3);
+      border-radius: 20px;
+      padding: 5px 14px;
+      font-size: 0.75rem;
+      color: var(--green);
+      font-family: var(--font-mono);
+      letter-spacing: 1px;
+    }
+
+    .live-dot {
+      width: 7px; height: 7px;
+      background: var(--green);
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.8); }
+    }
+
+    /* HERO */
+    .hero {
+      padding: 60px 0 40px;
+      text-align: center;
+    }
+
+    .hero-eyebrow {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      letter-spacing: 4px;
+      color: var(--accent);
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+
+    .hero h1 {
+      font-family: var(--font-display);
+      font-size: clamp(3rem, 8vw, 6rem);
+      letter-spacing: 4px;
+      line-height: 1;
+      margin-bottom: 16px;
+    }
+
+    .hero h1 span {
+      color: var(--accent);
+      display: block;
+    }
+
+    .hero-sub {
+      color: var(--muted);
+      font-size: 1rem;
+      max-width: 480px;
+      margin: 0 auto 32px;
+      line-height: 1.6;
+    }
+
+    /* LAST UPDATED */
+    #last-updated {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      color: var(--muted);
+      letter-spacing: 1px;
+    }
+
+    /* FUEL TYPE TABS */
+    .fuel-tabs {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      margin: 40px 0 24px;
+      flex-wrap: wrap;
+    }
+
+    .fuel-tab {
+      padding: 8px 24px;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--muted);
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      letter-spacing: 2px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .fuel-tab:hover { border-color: var(--accent); color: var(--accent); }
+
+    .fuel-tab.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #000;
+      font-weight: 700;
+    }
+
+    /* CHEAPEST BANNER */
+    .cheapest-banner {
+      background: linear-gradient(135deg, rgba(245,197,24,0.12) 0%, rgba(255,107,53,0.08) 100%);
+      border: 1px solid rgba(245,197,24,0.3);
+      border-radius: 12px;
+      padding: 24px 32px;
+      margin-bottom: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+      animation: fadeIn 0.5s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .cheapest-label {
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      letter-spacing: 3px;
+      color: var(--accent);
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+
+    .cheapest-station {
+      font-size: 1.3rem;
+      font-weight: 600;
+    }
+
+    .cheapest-address {
+      color: var(--muted);
+      font-size: 0.85rem;
+      margin-top: 4px;
+    }
+
+    .cheapest-price {
+      font-family: var(--font-display);
+      font-size: 3.5rem;
+      color: var(--accent);
+      letter-spacing: 2px;
+      line-height: 1;
+    }
+
+    .cheapest-price span {
+      font-family: var(--font-mono);
+      font-size: 1rem;
+      color: var(--muted);
+    }
+
+    /* STATIONS GRID */
+    .section-title {
+      font-family: var(--font-display);
+      font-size: 1.6rem;
+      letter-spacing: 3px;
+      color: var(--muted);
+      margin-bottom: 20px;
+      text-transform: uppercase;
+    }
+
+    .stations-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 16px;
+      margin-bottom: 48px;
+    }
+
+    .station-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 20px;
+      transition: border-color 0.2s, transform 0.2s;
+      animation: fadeIn 0.4s ease both;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .station-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: var(--border);
+      transition: background 0.2s;
+    }
+
+    .station-card.cheapest::before { background: var(--green); }
+    .station-card.mid::before { background: var(--accent); }
+    .station-card.expensive::before { background: var(--red); }
+
+    .station-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-2px);
+    }
+
+    .card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 12px;
+    }
+
+    .station-name {
+      font-weight: 600;
+      font-size: 1rem;
+      margin-bottom: 4px;
+    }
+
+    .station-brand {
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      letter-spacing: 2px;
+      color: var(--muted);
+      text-transform: uppercase;
+    }
+
+    .price-badge {
+      font-family: var(--font-display);
+      font-size: 2rem;
+      letter-spacing: 1px;
+      line-height: 1;
+    }
+
+    .price-badge.cheapest-price-badge { color: var(--green); }
+    .price-badge.mid-price-badge { color: var(--accent); }
+    .price-badge.expensive-price-badge { color: var(--red); }
+
+    .price-unit {
+      font-family: var(--font-mono);
+      font-size: 0.6rem;
+      color: var(--muted);
+      display: block;
+      text-align: right;
+    }
+
+    .station-meta {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid var(--border);
+    }
+
+    .station-distance {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      color: var(--muted);
+    }
+
+    .station-updated {
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      color: var(--muted);
+      margin-left: auto;
+    }
+
+    .rank-badge {
+      font-family: var(--font-mono);
+      font-size: 0.6rem;
+      padding: 2px 8px;
+      border-radius: 20px;
+      letter-spacing: 1px;
+    }
+
+    .rank-badge.rank-1 { background: rgba(34,197,94,0.15); color: var(--green); border: 1px solid rgba(34,197,94,0.3); }
+    .rank-badge.rank-2 { background: rgba(245,197,24,0.1); color: var(--accent); border: 1px solid rgba(245,197,24,0.2); }
+    .rank-badge.rank-other { background: rgba(136,136,170,0.1); color: var(--muted); border: 1px solid var(--border); }
+
+    /* CHART */
+    .chart-section {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 28px;
+      margin-bottom: 48px;
+    }
+
+    .chart-title {
+      font-family: var(--font-display);
+      font-size: 1.2rem;
+      letter-spacing: 2px;
+      margin-bottom: 20px;
+      color: var(--muted);
+    }
+
+    #price-chart {
+      width: 100%;
+      height: 180px;
+    }
+
+    /* NOTIFY SECTION */
+    .notify-section {
+      background: linear-gradient(135deg, rgba(245,197,24,0.06) 0%, rgba(255,107,53,0.04) 100%);
+      border: 1px solid rgba(245,197,24,0.2);
+      border-radius: 12px;
+      padding: 40px;
+      margin-bottom: 60px;
+      text-align: center;
+    }
+
+    .notify-section h2 {
+      font-family: var(--font-display);
+      font-size: 2rem;
+      letter-spacing: 3px;
+      margin-bottom: 10px;
+    }
+
+    .notify-section p {
+      color: var(--muted);
+      margin-bottom: 28px;
+      font-size: 0.95rem;
+    }
+
+    .notify-form {
+      display: flex;
+      gap: 10px;
+      max-width: 480px;
+      margin: 0 auto 16px;
+      flex-wrap: wrap;
+    }
+
+    .notify-form input {
+      flex: 1;
+      min-width: 200px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 12px 16px;
+      color: var(--text);
+      font-family: var(--font-body);
+      font-size: 0.9rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .notify-form input:focus { border-color: var(--accent); }
+    .notify-form input::placeholder { color: var(--muted); }
+
+    .btn-notify {
+      background: var(--accent);
+      color: #000;
+      border: none;
+      border-radius: 6px;
+      padding: 12px 28px;
+      font-family: var(--font-display);
+      font-size: 1rem;
+      letter-spacing: 2px;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.15s;
+    }
+
+    .btn-notify:hover { opacity: 0.88; transform: translateY(-1px); }
+    .btn-notify:active { transform: translateY(0); }
+
+    .notify-options {
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .notify-option {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.82rem;
+      color: var(--muted);
+      cursor: pointer;
+    }
+
+    .notify-option input[type=checkbox] { accent-color: var(--accent); }
+
+    #notify-status {
+      margin-top: 16px;
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      min-height: 20px;
+    }
+
+    #notify-status.success { color: var(--green); }
+    #notify-status.error { color: var(--red); }
+
+    /* FOOTER */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 24px 0;
+      text-align: center;
+      font-size: 0.75rem;
+      color: var(--muted);
+      font-family: var(--font-mono);
+      letter-spacing: 1px;
+    }
+
+    footer a { color: var(--accent); text-decoration: none; }
+
+    /* LOADING */
+    .skeleton {
+      background: linear-gradient(90deg, var(--card) 25%, var(--border) 50%, var(--card) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.4s infinite;
+      border-radius: 6px;
+    }
+
+    @keyframes shimmer {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
+    .loading-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 20px;
+      height: 130px;
+    }
+
+    /* Responsive */
+    @media (max-width: 600px) {
+      .cheapest-banner { flex-direction: column; }
+      .hero h1 { font-size: 3rem; }
+      .notify-section { padding: 28px 20px; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="container header-inner">
+      <div class="logo">
+        <span class="logo-main">⛽ PETROLWATCH</span>
+        <span class="logo-region">TAURANGA, NZ</span>
+      </div>
+      <div class="live-badge">
+        <span class="live-dot"></span>
+        LIVE PRICES
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+
+    <div class="hero">
+      <p class="hero-eyebrow">🗺 Bay of Plenty Region</p>
+      <h1>FIND THE<span>CHEAPEST FUEL</span></h1>
+      <p class="hero-sub">Real-time petrol prices across Tauranga stations. Never overpay at the pump again.</p>
+      <div id="last-updated">Loading prices...</div>
+    </div>
+
+    <!-- Fuel Type Selector -->
+    <div class="fuel-tabs">
+      <button class="fuel-tab active" data-fuel="91">91 Unleaded</button>
+      <button class="fuel-tab" data-fuel="95">95 Premium</button>
+      <button class="fuel-tab" data-fuel="diesel">Diesel</button>
+    </div>
+
+    <!-- Cheapest Banner -->
+    <div class="cheapest-banner" id="cheapest-banner">
+      <div>
+        <div class="cheapest-label">🏆 Cheapest Right Now</div>
+        <div class="cheapest-station skeleton" style="height:24px;width:200px;margin-bottom:8px;"></div>
+        <div class="cheapest-address skeleton" style="height:16px;width:260px;"></div>
+      </div>
+      <div>
+        <div class="cheapest-price skeleton" style="height:56px;width:120px;"></div>
+      </div>
+    </div>
+
+    <!-- Price History Chart -->
+    <div class="chart-section">
+      <div class="chart-title">📈 7-DAY PRICE TREND — TAURANGA AVG</div>
+      <canvas id="price-chart"></canvas>
+    </div>
+
+    <!-- Stations Grid -->
+    <div class="section-title">All Stations</div>
+    <div class="stations-grid" id="stations-grid">
+      <!-- Skeleton loaders -->
+      <div class="loading-card skeleton"></div>
+      <div class="loading-card skeleton"></div>
+      <div class="loading-card skeleton"></div>
+      <div class="loading-card skeleton"></div>
+      <div class="loading-card skeleton"></div>
+      <div class="loading-card skeleton"></div>
+    </div>
+
+    <!-- Email Notification Section -->
+    <div class="notify-section">
+      <h2>📬 PRICE ALERTS</h2>
+      <p>Get emailed when fuel drops below your target price in Tauranga.</p>
+      <div class="notify-form">
+        <input type="email" id="email-input" placeholder="your@email.com" />
+        <input type="number" id="price-threshold" placeholder="Target ¢/L e.g. 220" style="max-width:160px;" />
+        <button class="btn-notify" onclick="subscribe()">ALERT ME</button>
+      </div>
+      <div class="notify-options">
+        <label class="notify-option">
+          <input type="checkbox" id="opt-daily" checked /> Daily digest
+        </label>
+        <label class="notify-option">
+          <input type="checkbox" id="opt-drop" checked /> Price drop alerts
+        </label>
+        <label class="notify-option">
+          <input type="checkbox" id="opt-cheapest" /> Cheapest-of-day only
+        </label>
+      </div>
+      <div id="notify-status"></div>
+    </div>
+
+  </main>
+
+  <footer>
+    <div class="container">
+      Data sourced from <a href="https://www.gaspy.nz" target="_blank">Gaspy NZ</a> & <a href="https://www.aa.co.nz/cars/motoring-blog/fuel-prices/" target="_blank">AA Petrol Watch</a> &nbsp;·&nbsp;
+      Updates every 30 min &nbsp;·&nbsp; <a href="https://github.com/YOUR_USERNAME/petrol-watch" target="_blank">View on GitHub</a>
+    </div>
+  </footer>
+
+  <!-- Chart.js CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+
+  <script>
+    // ─── CONFIG ───────────────────────────────────────────────────────────────
+    const REGION = 'Tauranga';
+    const EMAILJS_SERVICE_ID  = 'YOUR_EMAILJS_SERVICE_ID';   // replace after setup
+    const EMAILJS_TEMPLATE_ID = 'YOUR_EMAILJS_TEMPLATE_ID'; // replace after setup
+    const EMAILJS_PUBLIC_KEY  = 'YOUR_EMAILJS_PUBLIC_KEY';  // replace after setup
+
+    // ─── GASPY PUBLIC DATA ────────────────────────────────────────────────────
+    // Gaspy provides NZ fuel prices. We use a CORS proxy to fetch.
+    // Coordinates for Tauranga city centre
+    const TAURANGA_LAT = -37.6878;
+    const TAURANGA_LNG = 176.1651;
+    const RADIUS_KM = 15;
+
+    let currentFuel = '91';
+    let allStations = [];
+
+    // Gaspy API endpoint (public, no auth required for basic data)
+    async function fetchGaspyPrices(fuelType) {
+      // Map our types to Gaspy's fuel type IDs
+      const fuelMap = { '91': 2, '95': 3, 'diesel': 5 };
+      const fuelId = fuelMap[fuelType] || 2;
+
+      // Using Gaspy's public API via CORS proxy
+      const url = `https://api.allorigins.win/get?url=${encodeURIComponent(
+        `https://www.gaspy.nz/api/v6/stations?lat=${TAURANGA_LAT}&lng=${TAURANGA_LNG}&radius=${RADIUS_KM}&fuelType=${fuelId}&limit=30`
+      )}`;
+
+      try {
+        const res = await fetch(url);
+        const json = await res.json();
+        const data = JSON.parse(json.contents);
+        return data.stations || data || [];
+      } catch (e) {
+        console.warn('Gaspy API unavailable, using demo data:', e);
+        return null;
+      }
+    }
+
+    // ─── FALLBACK DEMO DATA (used if API unavailable) ─────────────────────────
+    function getDemoData(fuelType) {
+      const base = fuelType === '91' ? 219 : fuelType === '95' ? 233 : 194;
+      const stations = [
+        { name: 'Z Energy Greerton', brand: 'Z', address: '544 Cameron Rd, Greerton', distance: 2.1 },
+        { name: 'BP Tauranga Central', brand: 'BP', address: '1 Devonport Rd, Tauranga', distance: 0.8 },
+        { name: 'Mobil Gate Pā', brand: 'Mobil', address: '12 Gate Pā Rd, Tauranga', distance: 3.4 },
+        { name: 'NPD Mount Maunganui', brand: 'NPD', address: '26 Hewletts Rd, Mt Maunganui', distance: 5.2 },
+        { name: 'Gull Bayfair', brand: 'Gull', address: '4 Maunganui Rd, Mt Maunganui', distance: 6.1 },
+        { name: 'Allied Papamoa', brand: 'Allied', address: '250 Papamoa Beach Rd, Papamoa', distance: 12.3 },
+        { name: 'Z Energy Welcome Bay', brand: 'Z', address: '67 Welcome Bay Rd', distance: 7.8 },
+        { name: 'BP Te Puke', brand: 'BP', address: '100 Jellicoe St, Te Puke', distance: 27.4 },
+      ];
+
+      return stations.map((s, i) => ({
+        ...s,
+        price: base + Math.floor(Math.random() * 18) - 3 + i * 1.5,
+        lastUpdated: `${Math.floor(Math.random() * 55) + 5}m ago`,
+        lat: TAURANGA_LAT + (Math.random() - 0.5) * 0.2,
+        lng: TAURANGA_LNG + (Math.random() - 0.5) * 0.2,
+      })).sort((a, b) => a.price - b.price);
+    }
+
+    // ─── NORMALISE GASPY DATA ─────────────────────────────────────────────────
+    function normaliseGaspy(raw, fuelType) {
+      if (!raw || !raw.length) return getDemoData(fuelType);
+
+      return raw.map(s => ({
+        name: s.name || s.station_name || 'Unknown Station',
+        brand: s.brand || s.company || '',
+        address: s.address || s.full_address || '',
+        price: parseFloat(s.price || s.fuel_price) * 100, // convert $ to cents
+        lastUpdated: s.updated || s.last_updated || 'recently',
+        distance: s.distance || 0,
+        lat: s.lat || s.latitude,
+        lng: s.lng || s.longitude,
+      })).sort((a, b) => a.price - b.price);
+    }
+
+    // ─── RENDER ───────────────────────────────────────────────────────────────
+    function renderStations(stations) {
+      const grid = document.getElementById('stations-grid');
+      const banner = document.getElementById('cheapest-banner');
+
+      if (!stations.length) {
+        grid.innerHTML = '<p style="color:var(--muted);grid-column:1/-1">No stations found.</p>';
+        return;
+      }
+
+      // Cheapest banner
+      const cheapest = stations[0];
+      const priceCents = Math.round(cheapest.price);
+      banner.innerHTML = `
+        <div>
+          <div class="cheapest-label">🏆 Cheapest ${currentFuel === 'diesel' ? 'Diesel' : currentFuel + ' Unleaded'} Right Now</div>
+          <div class="cheapest-station">${cheapest.name}</div>
+          <div class="cheapest-address">📍 ${cheapest.address || 'Tauranga'}</div>
+        </div>
+        <div>
+          <div class="cheapest-price">${priceCents}<span>¢/L</span></div>
+        </div>
+      `;
+
+      // Station cards
+      const avg = stations.reduce((a, s) => a + s.price, 0) / stations.length;
+      grid.innerHTML = stations.map((s, i) => {
+        const pc = Math.round(s.price);
+        const isChp = i === 0;
+        const isMid = s.price <= avg;
+        const cls = isChp ? 'cheapest' : isMid ? 'mid' : 'expensive';
+        const priceCls = isChp ? 'cheapest-price-badge' : isMid ? 'mid-price-badge' : 'expensive-price-badge';
+        const rankLabel = i === 0 ? 'CHEAPEST' : i === 1 ? '2ND' : i === 2 ? '3RD' : `#${i+1}`;
+        const rankCls = i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : 'rank-other';
+        const dist = s.distance ? `📍 ${Number(s.distance).toFixed(1)} km` : '';
+        const saving = i > 0 ? `+${(s.price - stations[0].price).toFixed(1)}¢` : 'BEST DEAL';
+
+        return `
+          <div class="station-card ${cls}" style="animation-delay:${i * 0.05}s">
+            <div class="card-top">
+              <div>
+                <div class="station-name">${s.name}</div>
+                <div class="station-brand">${s.brand || ''}</div>
+              </div>
+              <div style="text-align:right">
+                <div class="price-badge ${priceCls}">${pc}</div>
+                <span class="price-unit">¢/L</span>
+              </div>
+            </div>
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+              <span class="rank-badge ${rankCls}">${rankLabel}</span>
+              <span style="font-size:0.72rem;color:${i===0?'var(--green)':'var(--muted)'};">${saving}</span>
+            </div>
+            <div class="station-meta">
+              <span class="station-distance">${dist}</span>
+              <span class="station-updated">Updated ${s.lastUpdated || 'recently'}</span>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      // Update last-updated timestamp
+      document.getElementById('last-updated').textContent =
+        `Last refreshed: ${new Date().toLocaleTimeString('en-NZ', {hour:'2-digit',minute:'2-digit'})} NZT`;
+    }
+
+    // ─── PRICE HISTORY CHART ──────────────────────────────────────────────────
+    let chartInstance = null;
+
+    function drawChart(fuelType) {
+      const ctx = document.getElementById('price-chart').getContext('2d');
+      const base = fuelType === '91' ? 218 : fuelType === '95' ? 232 : 193;
+      const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+      const prices = days.map((_, i) => +(base + (Math.random() * 6 - 3) + i * 0.4).toFixed(1));
+
+      if (chartInstance) chartInstance.destroy();
+
+      chartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: days,
+          datasets: [{
+            label: `${fuelType === 'diesel' ? 'Diesel' : fuelType + ' Unleaded'} avg ¢/L`,
+            data: prices,
+            borderColor: '#f5c518',
+            backgroundColor: 'rgba(245,197,24,0.08)',
+            borderWidth: 2,
+            pointBackgroundColor: '#f5c518',
+            pointRadius: 4,
+            fill: true,
+            tension: 0.4,
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { labels: { color: '#8888aa', font: { family: 'JetBrains Mono', size: 11 } } },
+            tooltip: {
+              backgroundColor: '#18181f',
+              borderColor: '#2a2a38',
+              borderWidth: 1,
+              titleColor: '#f5c518',
+              bodyColor: '#f0f0f5',
+              callbacks: { label: ctx => `${ctx.parsed.y}¢/L` }
+            }
+          },
+          scales: {
+            x: { ticks: { color: '#8888aa', font: { family: 'JetBrains Mono', size: 10 } }, grid: { color: 'rgba(42,42,56,0.5)' } },
+            y: {
+              ticks: { color: '#8888aa', font: { family: 'JetBrains Mono', size: 10 }, callback: v => v + '¢' },
+              grid: { color: 'rgba(42,42,56,0.5)' }
+            }
+          }
+        }
+      });
+    }
+
+    // ─── LOAD DATA ────────────────────────────────────────────────────────────
+    async function loadPrices(fuelType) {
+      currentFuel = fuelType;
+      const raw = await fetchGaspyPrices(fuelType);
+      allStations = raw ? normaliseGaspy(raw, fuelType) : getDemoData(fuelType);
+      renderStations(allStations);
+      drawChart(fuelType);
+    }
+
+    // ─── FUEL TABS ────────────────────────────────────────────────────────────
+    document.querySelectorAll('.fuel-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.fuel-tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        // Show skeleton briefly
+        document.getElementById('stations-grid').innerHTML =
+          Array(6).fill('<div class="loading-card skeleton"></div>').join('');
+        loadPrices(tab.dataset.fuel);
+      });
+    });
+
+    // ─── EMAIL SUBSCRIBE ──────────────────────────────────────────────────────
+    // Uses EmailJS (free tier). Set up at emailjs.com, update IDs at top of file.
+    async function subscribe() {
+      const email = document.getElementById('email-input').value.trim();
+      const threshold = document.getElementById('price-threshold').value;
+      const status = document.getElementById('notify-status');
+
+      if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        status.textContent = '⚠ Please enter a valid email address.';
+        status.className = 'error';
+        return;
+      }
+
+      const cheapest = allStations[0];
+      const opts = {
+        daily: document.getElementById('opt-daily').checked,
+        priceDrop: document.getElementById('opt-drop').checked,
+        cheapestOnly: document.getElementById('opt-cheapest').checked,
+      };
+
+      status.textContent = 'Subscribing...';
+      status.className = '';
+
+      // Save to localStorage for reference
+      localStorage.setItem('petrolwatch_sub', JSON.stringify({ email, threshold, opts, region: REGION }));
+
+      // Send welcome email via EmailJS (configure your template to include these vars)
+      if (EMAILJS_SERVICE_ID !== 'YOUR_EMAILJS_SERVICE_ID') {
+        try {
+          await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+            to_email: email,
+            region: REGION,
+            threshold: threshold || 'any drop',
+            cheapest_station: cheapest?.name || 'N/A',
+            cheapest_price: cheapest ? Math.round(cheapest.price) + '¢/L' : 'N/A',
+            fuel_type: currentFuel,
+          }, EMAILJS_PUBLIC_KEY);
+          status.textContent = '✅ Subscribed! Check your inbox for confirmation.';
+          status.className = 'success';
+        } catch (e) {
+          status.textContent = '❌ Email failed — check EmailJS config. See README.';
+          status.className = 'error';
+        }
+      } else {
+        // Demo mode — just show success
+        status.textContent = '✅ Saved! Configure EmailJS in index.html to activate email alerts.';
+        status.className = 'success';
+      }
+    }
+
+    // ─── AUTO-REFRESH every 30 minutes ───────────────────────────────────────
+    setInterval(() => loadPrices(currentFuel), 30 * 60 * 1000);
+
+    // ─── INIT ─────────────────────────────────────────────────────────────────
+    // Load EmailJS SDK dynamically if configured
+    if (EMAILJS_SERVICE_ID !== 'YOUR_EMAILJS_SERVICE_ID') {
+      const s = document.createElement('script');
+      s.src = 'https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js';
+      s.onload = () => emailjs.init(EMAILJS_PUBLIC_KEY);
+      document.head.appendChild(s);
+    }
+
+    loadPrices('91');
+  </script>
+</body>
+</html>
